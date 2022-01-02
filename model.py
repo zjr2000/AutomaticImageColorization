@@ -60,3 +60,27 @@ class LowLevelFeature(nn.Module):
         x = F.relu(self.conv4(x))
         x = F.relu(self.conv5(x))
         return F.relu(self.conv6(x))
+
+
+class MidLevelFeature(nn.Module):
+    def __init__(self):
+        super(MidLevelFeature, self).__init__()
+        self.conv1 = nn.Conv2d(
+            in_channels=512,
+            out_channels=512,
+            kernel_size=3,
+            stride=1,
+            padding=1
+        )
+
+        self.conv2 = nn.Conv2d(
+            in_channels=512,
+            out_channels=256,
+            kernel_size=3,
+            stride=1,
+            padding=1
+        ) 
+
+    def forawrd(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
