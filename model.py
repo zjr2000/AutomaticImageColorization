@@ -48,7 +48,7 @@ class LowLevelFeature(nn.Module):
             in_channels=256,
             out_channels=512,
             kernel_size=3,
-            stride=2,
+            stride=1,
             padding=1
         )
 
