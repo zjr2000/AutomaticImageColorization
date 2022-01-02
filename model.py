@@ -45,7 +45,7 @@ class LowLevelFeature(nn.Module):
             padding=1
         )
 
-        self.conv5 = nn.Conv2d(
+        self.conv6 = nn.Conv2d(
             in_channels=256,
             out_channels=512,
             kernel_size=3,
@@ -82,7 +82,7 @@ class MidLevelFeature(nn.Module):
             padding=1
         ) 
 
-    def forawrd(self, x):
+    def forward(self, x):
         x = F.relu(self.conv1(x))
         return F.relu(self.conv2(x))
 
@@ -143,10 +143,13 @@ class FusionLayer(nn.Module):
         self.projection = nn.Linear(512, 256)
 
     def forward(self, global_feat, mid_level_feat):
+        mid_level_feat = rearrange(mid_level_feat, 'B C H W -> B H W C')
         global_feat = global_feat.unsqueeze(1).unsqueeze(1)
         global_feat = global_feat.repeat(1, mid_level_feat.size(1), mid_level_feat.size(2), 1)
         fusion = torch.cat([mid_level_feat, global_feat], dim=-1)
-        return torch.sigmoid(self.projection(fusion))
+        fusion = torch.sigmoid(self.projection(fusion))
+        fusion = rearrange(fusion, 'B H W C -> B C H W')
+        return fusion
 
 
 class UpsamplingNet(nn.Module):
@@ -171,11 +174,24 @@ class UpsamplingNet(nn.Module):
     def forward(self, x):
         x = F.interpolate(x, scale_factor=2, mode='nearest')
         x = F.relu(self.conv1(x))
-        return torch.sigmoid(self.con2(x))
+        return torch.sigmoid(self.conv2(x))
+
+
+class Classifier(nn.Module):
+    def __init__(self, class_num, input_dim=256, hidden_sizes = [512, 512]):
+        super(Classifier, self).__init__()
+        self.hidden_layer1 = nn.Linear(input_dim, hidden_sizes[0])
+        self.hidden_layer2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.fc = nn.Linear(hidden_sizes[1], class_num)
+
+    def forward(self, x):
+        x = F.relu(self.hidden_layer1(x))
+        x = self.hidden_layer2(x)
+        return F.softmax(self.fc(x), dim=-1)
 
 
 class ColorizationNet(nn.Module):
-    def __init__(self):
+    def __init__(self, class_num):
         super(ColorizationNet, self).__init__()
         self.low_level_net = LowLevelFeature()
         self.mid_level_net = MidLevelFeature()
@@ -190,6 +206,7 @@ class ColorizationNet(nn.Module):
         )
         self.upsampling1 = UpsamplingNet(out_dims=[128, 64, 64])
         self.upsampling2 = UpsamplingNet(out_dims=[64, 32, 2])
+        self.cls = Classifier(class_num=class_num)
 
     def forward(self, x):
         x = self.low_level_net(x)
@@ -203,3 +220,4 @@ class ColorizationNet(nn.Module):
         fused_feature = self.conv_fusion(fused_feature)
         out = self.upsampling1(fused_feature)
         out = self.upsampling2(out)
+        return out, self.cls(global_feature)
