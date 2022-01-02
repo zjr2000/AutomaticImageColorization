@@ -146,7 +146,7 @@ class FusionLayer(nn.Module):
         global_feat = global_feat.unsqueeze(1).unsqueeze(1)
         global_feat = global_feat.repeat(1, mid_level_feat.size(1), mid_level_feat.size(2), 1)
         fusion = torch.cat([mid_level_feat, global_feat], dim=-1)
-        return F.sigmoid(self.projection(fusion))
+        return torch.sigmoid(self.projection(fusion))
 
 
 class UpsamplingNet(nn.Module):
@@ -171,7 +171,7 @@ class UpsamplingNet(nn.Module):
     def forward(self, x):
         x = F.interpolate(x, scale_factor=2, mode='nearest')
         x = F.relu(self.conv1(x))
-        return F.relu(self.con2(x))
+        return torch.sigmoid(self.con2(x))
 
 
 class ColorizationNet(nn.Module):
@@ -197,7 +197,7 @@ class ColorizationNet(nn.Module):
         global_feature = self.global_feat_net(x)
         
         fused_feature = self.fusion_layer(
-            global_feat=global_feature,
+            global_feat=F.relu(global_feature),
             mid_level_feat=mid_level_feature
         )
         fused_feature = self.conv_fusion(fused_feature)
