@@ -64,5 +64,5 @@ class ColorizationNet(nn.Module):
 
     @ staticmethod
     def run_train(model):
-        for inputs in model.train_loader:
-            # ipts = model.inputs_pretreament(inputs)
+        for ipts in model.train_loader:
+            retval = model(ipts)
