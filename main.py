@@ -35,9 +35,8 @@ if __name__ == '__main__':
     isTrain = (opt.phase == 'train')
     init_seeds(0)
     model = ColorizationNet(cfgs, isTrain)
-    if isTrain:
-        ColorizationNet.run_train(model)
-    else:
-        ColorizationNet.run_test(model)
+    for i in range(cfgs['epoch']):
+        if isTrain:
+            ColorizationNet.run_train(model)
 
 

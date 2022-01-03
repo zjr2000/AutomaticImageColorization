@@ -1,6 +1,10 @@
 batch_size: 128
 class_num: 100
 with_test: True
+epoch: 10
+loss_weight:
+  - 1.0
+  - 5.0e-3
 
 optimizer_cfg:
   lr: 1.0e-3

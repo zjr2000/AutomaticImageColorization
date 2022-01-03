@@ -1,3 +1,4 @@
+from numpy import mod
 from modules import *
 from data_loader import *
 import torch.optim as optim
@@ -5,7 +6,8 @@ import torch.optim as optim
 class ColorizationNet(nn.Module):
     def __init__(self, cfgs, isTrain):
         super(ColorizationNet, self).__init__()
-        # self.cfgs = cfgs
+        self.cfgs = cfgs
+        self.iteration = 0
         # self.isTrain = isTrain
 
         self.build_network(cfgs['class_num'])
@@ -19,7 +21,11 @@ class ColorizationNet(nn.Module):
         if isTrain:
             self.optimizer = optim.Adam(filter(lambda p: p.requires_grad, self.parameters()), **cfgs["optimizer_cfg"])
             self.scheduler = optim.lr_scheduler.MultiStepLR(**cfgs["scheduler_cfg"])
+            self.mse = nn.MSELoss(reduction='sum')
+            self.ce = nn.CrossEntropyLoss()
         self.train(isTrain)
+
+        
 
     def init_parameters(self):
         for m in self.modules():  # 深度优先遍历
@@ -62,7 +68,22 @@ class ColorizationNet(nn.Module):
         out = self.upsampling2(out)
         return out, self.cls(global_feature)
 
+    def loss(self, ab, ab_out, lab, lab_out):
+        loss_col = self.mse(ab, ab_out)
+        loss_class = self.ce(lab, lab_out)
+        return loss_col * self.cfgs['loss_weight'][0] + loss_class * self.cfgs['loss_weight'][1]
+    
+    def train_step(self, loss):
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        self.scheduler.step()
+        self.iteration += 1
+
     @ staticmethod
     def run_train(model):
         for ipts in model.train_loader:
-            retval = model(ipts)
+            L, ab, lab = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
+            ab_out, lab_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
+            loss = model.loss(ab, ab_out, lab, lab_out)
+            model.train_step(loss)
