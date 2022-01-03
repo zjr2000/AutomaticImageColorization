@@ -1,0 +1,10 @@
+batch_size: 128
+class_num: 100
+with_test: True
+optimizer_cfg:
+  lr: 1.0e-3
+  weight_decay: 5.0e-4
+
+scheduler_cfg: 
+  gamma: 0.1
+  milestones: [50, 100]
