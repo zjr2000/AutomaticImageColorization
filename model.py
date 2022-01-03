@@ -31,9 +31,6 @@ class ColorizationNet(nn.Module):
                 nn.init.kaiming_uniform_(m.weight.data)
                 if m.bias is not None:
                     nn.init.constant_(m.bias.data, 0.0)
-    
-    # def inputs_pretreament(inputs):
-
 
     def build_network(self, class_num):
         self.low_level_net = LowLevelFeature()
@@ -68,4 +65,4 @@ class ColorizationNet(nn.Module):
     @ staticmethod
     def run_train(model):
         for inputs in model.train_loader:
-            ipts = model.inputs_pretreament(inputs)
+            # ipts = model.inputs_pretreament(inputs)
