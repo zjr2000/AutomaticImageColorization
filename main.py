@@ -51,7 +51,7 @@ def train(cfgs):
     train_loader = get_data_loader('./data', cfgs['batch_size'], True)
     # Define train step
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), **cfgs["optimizer_cfg"])
-    scheduler = optim.lr_scheduler.MultiStepLR(**cfgs["scheduler_cfg"])
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, **cfgs["scheduler_cfg"])
     def train_step(loss):
         optimizer.zero_grad()
         loss.backward()
