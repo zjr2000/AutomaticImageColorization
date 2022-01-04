@@ -6,6 +6,9 @@ import random
 from models.colorization_net import *
 import torch
 
+# Device
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Log Settings
 logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
@@ -40,6 +43,7 @@ def init_model(is_train=True):
     model = ColorizationNet(cfgs)
     model.train(is_train)
     model = torch.nn.DataParallel(model)
+    model = model.to(DEVICE)
     return model
 
 def train(cfgs):
@@ -73,6 +77,9 @@ def train(cfgs):
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
             L, ab, cls_gt = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
+            L = L.to(DEVICE)
+            ab = ab.to(DEVICE)
+            cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
             loss, colorization_loss, classification_loss = loss(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
