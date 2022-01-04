@@ -64,9 +64,9 @@ def train(cfgs):
     # Define loss
     mse = nn.MSELoss(reduction='sum')
     ce = nn.CrossEntropyLoss()
-    def loss(ab, ab_out, cls_gt, cls_out):
-        colorization_loss = mse(ab, ab_out)
-        classification_loss = ce(cls_gt, cls_out)
+    def loss_cal(ab, ab_out, cls_gt, cls_out):
+        colorization_loss = mse(ab_out, ab)
+        classification_loss = ce(cls_out, cls_gt)
         total_loss = colorization_loss * cfgs['loss_weight'][0] + classification_loss * cfgs['loss_weight'][1]
         return total_loss, colorization_loss, classification_loss
     # Start training
@@ -81,7 +81,7 @@ def train(cfgs):
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
-            loss, colorization_loss, classification_loss = loss(ab, ab_out, cls_gt, cls_out)
+            loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
             col_loss_cnt += colorization_loss.item()
             cls_loss_cnt += classification_loss.item()
