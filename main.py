@@ -7,7 +7,7 @@ from models.colorization_net import *
 import torch
 
 # Log Settings
-logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
+logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 # Argument
