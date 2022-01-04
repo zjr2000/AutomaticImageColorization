@@ -2,6 +2,7 @@ from numpy import mod
 from modules import *
 from data_loader import *
 import torch.optim as optim
+import torch.nn.functional as F
 
 class ColorizationNet(nn.Module):
     def __init__(self, cfgs, isTrain):
@@ -66,6 +67,7 @@ class ColorizationNet(nn.Module):
         fused_feature = self.conv_fusion(fused_feature)
         out = self.upsampling1(fused_feature)
         out = self.upsampling2(out)
+        out = F.interpolate(out, scale_factor=2, mode='nearest')
         return out, self.cls(global_feature)
 
     def loss(self, ab, ab_out, lab, lab_out):
