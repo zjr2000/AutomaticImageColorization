@@ -4,4 +4,6 @@
  ## Get Started
  ```
  pytorch==1.7.1
+ pip install einops
+ pip install scikit-image
  ```
