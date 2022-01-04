@@ -62,7 +62,7 @@ def train(cfgs):
         optimizer.step()
         scheduler.step()
     # Define loss
-    mse = nn.MSELoss(reduction='sum')
+    mse = nn.MSELoss(reduction='mean')
     ce = nn.CrossEntropyLoss()
     def loss_cal(ab, ab_out, cls_gt, cls_out):
         colorization_loss = mse(ab_out, ab)
