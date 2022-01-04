@@ -5,6 +5,11 @@ import yaml
 import random
 from model import *
 
+# Log Settings
+logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
+
+# Argument
 parser = argparse.ArgumentParser(description='Main program.')
 parser.add_argument('--cfgs', type=str,
                     default='./config.yaml', help="path of config file")
@@ -32,11 +37,13 @@ def init_seeds(seed=0, cuda_deterministic=True):
 
 if __name__ == '__main__':
     cfgs = config_loader(opt.cfgs)
+    logger.info(cfgs)
     isTrain = (opt.phase == 'train')
     init_seeds(0)
     model = ColorizationNet(cfgs, isTrain)
-    for i in range(cfgs['epoch']):
+    max_epoch = cfgs['epoch']
+    for i in range(max_epoch):
         if isTrain:
-            ColorizationNet.run_train(model)
+            ColorizationNet.run_train(model, logger, i, max_epoch)
 
 

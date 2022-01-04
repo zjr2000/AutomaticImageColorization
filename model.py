@@ -70,10 +70,11 @@ class ColorizationNet(nn.Module):
         out = F.interpolate(out, scale_factor=2, mode='nearest')
         return out, self.cls(global_feature)
 
-    def loss(self, ab, ab_out, lab, lab_out):
-        loss_col = self.mse(ab, ab_out)
-        loss_class = self.ce(lab, lab_out)
-        return loss_col * self.cfgs['loss_weight'][0] + loss_class * self.cfgs['loss_weight'][1]
+    def loss(self, ab, ab_out, cls_gt, cls_out):
+        colorization_loss = self.mse(ab, ab_out)
+        classification_loss = self.ce(cls_gt, cls_out)
+        total_loss = colorization_loss * self.cfgs['loss_weight'][0] + classification_loss * self.cfgs['loss_weight'][1]
+        return total_loss, colorization_loss, classification_loss
     
     def train_step(self, loss):
         self.optimizer.zero_grad()
@@ -83,9 +84,19 @@ class ColorizationNet(nn.Module):
         self.iteration += 1
 
     @ staticmethod
-    def run_train(model):
-        for ipts in model.train_loader:
-            L, ab, lab = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
-            ab_out, lab_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
-            loss = model.loss(ab, ab_out, lab, lab_out)
+    def run_train(model, logger, epoch, max_epoach, log_step=10):
+        total_step = len(model.train_loader)
+        loss_cnt = col_loss_cnt = cls_loss_cnt = 0
+        for i, ipts in enumerate(model.train_loader, start=1):
+            L, ab, cls_gt = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
+            ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
+            loss, colorization_loss, classification_loss = model.loss(ab, ab_out, cls_gt, cls_out)
+            loss_cnt += loss.item()
+            col_loss_cnt += colorization_loss.item()
+            cls_loss_cnt += classification_loss.item()
             model.train_step(loss)
+            if i % log_step == 0:
+                msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.3f col_loss=%.3f total=%.3f' % (epoch+1,
+                 max_epoach, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
+                logger.info(msg) 
+                loss_cnt = cls_loss_cnt = col_loss_cnt = 0
