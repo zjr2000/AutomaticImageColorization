@@ -1,5 +1,5 @@
 from numpy import mod
-from modules import *
+from models.modules import *
 from data_loader import *
 import torch.optim as optim
 import torch.nn.functional as F

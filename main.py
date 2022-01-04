@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import yaml
 import random
-from model import *
+from models.colorization_net import *
 
 # Log Settings
 logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s')
