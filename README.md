@@ -16,6 +16,8 @@
 
  5. 补充实验，一个初步的想法是，将global分类网络替换为现有的在大规模数据集上预训练好的网络，fine-tune之后看下结果，暂时
  没有想到别的实验
+
+ 6. colorization loss中ruduction使用sum会特别大，跟cls的loss完全不在一个量级，不知道会不会有影响，这个看后面怎么解决一下。
  
  ## Get Started
  ```
