@@ -62,7 +62,7 @@ def train(cfgs):
         optimizer.step()
         scheduler.step()
     # Define loss
-    mse = nn.MSELoss(reduction='sum')
+    mse = nn.MSELoss(reduction='mean')
     ce = nn.CrossEntropyLoss()
     def loss_cal(ab, ab_out, cls_gt, cls_out):
         colorization_loss = mse(ab_out, ab)
@@ -87,7 +87,7 @@ def train(cfgs):
             cls_loss_cnt += classification_loss.item()
             train_step(loss)
             if i % log_step == 0:
-                msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.3f col_loss=%.3f total=%.3f' % (epoch+1,
+                msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.5f col_loss=%.5f total=%.5f' % (epoch+1,
                  max_epoch, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
                 logger.info(msg) 
                 loss_cnt = cls_loss_cnt = col_loss_cnt = 0
