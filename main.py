@@ -5,6 +5,7 @@ import yaml
 import random
 from models.colorization_net import *
 import torch
+import tqdm
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,7 +40,7 @@ def init_seeds(seed=0, cuda_deterministic=True):
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
 
-def init_model(is_train=True):
+def init_model(cfgs, is_train=True):
     model = ColorizationNet(cfgs)
     model.train(is_train)
     model = torch.nn.DataParallel(model)
@@ -50,7 +51,7 @@ def train(cfgs):
     # Fix random seed
     init_seeds(0)
     # Init model
-    model = init_model()
+    model = init_model(cfgs)
     # Init data loader
     train_loader = get_data_loader('./data', cfgs['batch_size'], True)
     # Define train step
@@ -91,6 +92,32 @@ def train(cfgs):
                  max_epoch, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
                 logger.info(msg) 
                 loss_cnt = cls_loss_cnt = col_loss_cnt = 0
+
+
+def evaluate(cfgs, model):
+    eval_loader = get_data_loader('./data', cfgs['batch_size'], False)
+    total_step = len(eval_loader)
+    total_l2_dist = 0
+    correct_num = 0
+    for i, ipts in tqdm(enumerate(eval_loader, start=1)):
+        L, ab, cls_gt = ipts
+        L = L.to(DEVICE)
+        ab = ab.to(DEVICE)
+        cls_gt = cls_gt.to(DEVICE)
+        ab_out, cls_out = model(L)
+        # L2 distance calculate
+        for i in range(len(ab)): total_l2_dist += torch.dist(ab[i], ab_out[i], 2)
+        # correct num
+        correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
+    
+    avg_l2_dist = total_l2_dist / total_step
+    cls_acc = correct_num / total_step
+    # TODO add more evaluate metrics
+    scores = {'L2 distance': avg_l2_dist, 'Classification acc': cls_acc}
+    return scores  
+         
+
+
 
 
 if __name__ == '__main__':
