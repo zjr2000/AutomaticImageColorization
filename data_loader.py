@@ -7,7 +7,7 @@ import numpy as np
 
 class Rgb2Lab(object):
     def __call__(self, image):
-        image = np.asarray(image, dtype='float32')
+        image = image.permute(1, 2, 0).contiguous()
         assert image.shape == (224, 224, 3)
         img_lab = color.rgb2lab(image)
         img_lab[:,:,:1] = img_lab[:,:,:1] / 100.0
@@ -16,6 +16,7 @@ class Rgb2Lab(object):
 
 class SplitLab(object):
     def __call__(self, image):
+        image = image.transpose(2, 0, 1)
         assert image.shape == (3, 224, 224)
         L  = image[:1,:,:]
         ab = image[1:,:,:]
@@ -25,7 +26,7 @@ class DataSet(CIFAR100):
     def __init__(self, root, train=True, transform=None, target_transform=None, download=False):
         super().__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
         self.composed = transforms.Compose(
-            [transforms.Resize(224), Rgb2Lab(), transforms.ToTensor(), SplitLab()]
+            [transforms.Resize(224), transforms.ToTensor(), Rgb2Lab(), SplitLab()]
         )
     def __getitem__(self, index):
         image, label = super().__getitem__(index) # image: [c, h, w]
@@ -43,8 +44,10 @@ def get_data_loader(root, batch_size, isTrain, num_workers=1, shuffle=True):
     )
 
 if __name__ == '__main__':
-    loader = get_data_loader('./data', 1, 1)
+    loader = get_data_loader('./data', 1, True)
     d = next(iter(loader))
+    print(d[0])
+    print(d[1])
     print(len(d))
     print(d[2])
     print(d[0].size(), d[1].size(), d[2].size())
