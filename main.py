@@ -137,9 +137,6 @@ def evaluate(cfgs, model):
     return scores  
          
 
-
-
-
 if __name__ == '__main__':
     cfgs = config_loader(opt.cfgs)
     logger.info(cfgs)
