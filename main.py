@@ -80,6 +80,7 @@ def train(cfgs):
     save_metric = cfgs['save_metrics']
     best_model_path = cfgs['best_model_path']
     saving_schedule = [int(x * total_step / save_per_epoch) for x in list(range(1, save_per_epoch + 1))]
+    logger.info('Saving schedule', saving_schedule)
     for epoch in range(max_epoch):
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
