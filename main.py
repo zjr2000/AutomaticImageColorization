@@ -63,7 +63,7 @@ def train(cfgs):
         optimizer.step()
         scheduler.step()
     # Define loss
-    mse = nn.MSELoss(reduction='sum')
+    mse = nn.MSELoss(reduction='mean')
     ce = nn.CrossEntropyLoss()
     def loss_cal(ab, ab_out, cls_gt, cls_out):
         colorization_loss = mse(ab_out, ab)
@@ -103,7 +103,7 @@ def train(cfgs):
 
             if i in saving_schedule:
                 model.eval()
-                scores = evaluate(cfgs, model)
+                scores = _evaluate(cfgs, model)
                 logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
                 if save_metric == 'raw_acc':
                     if scores['raw_acc'] <= best_raw_acc:
@@ -114,7 +114,7 @@ def train(cfgs):
                 model.train()
 
 
-def evaluate(cfgs, model):
+def _evaluate(cfgs, model):
     eval_loader = get_data_loader('./data', cfgs['batch_size'], False)
     total_step = len(eval_loader)
     total_l2_dist = 0
