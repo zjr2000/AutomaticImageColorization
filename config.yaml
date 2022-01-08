@@ -3,6 +3,9 @@ class_num: 100
 with_test: True
 epoch: 10
 log_step: 10
+save_per_epoch: 4
+save_metric: 'raw_acc'
+best_model_path: './results/checkpoints/best_checkpoint.pth'
 loss_weight:
   - 1.0
   - 3.3e-3

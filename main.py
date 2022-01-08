@@ -73,8 +73,14 @@ def train(cfgs):
     # Start training
     max_epoch = cfgs['epoch']
     log_step = cfgs['log_step']
+    save_per_epoch = cfgs['save_per_epoch']
+    total_step = len(train_loader)
+    best_raw_acc = 100000
+    best_cls_acc = 0
+    save_metric = cfgs['save_metrics']
+    best_model_path = cfgs['best_model_path']
+    saving_schedule = [int(x * total_step / save_per_epoch) for x in list(range(1, save_per_epoch + 1))]
     for epoch in range(max_epoch):
-        total_step = len(train_loader)
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
             L, ab, cls_gt = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
@@ -92,6 +98,18 @@ def train(cfgs):
                  max_epoch, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
                 logger.info(msg) 
                 loss_cnt = cls_loss_cnt = col_loss_cnt = 0
+
+            if i in saving_schedule:
+                model.eval()
+                scores = evaluate(cfgs, model)
+                logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
+                if save_metric == 'raw_acc':
+                    if scores['raw_acc'] <= best_raw_acc:
+                        torch.save(model.state_dict(), best_model_path)
+                elif save_metric == 'cls_acc':
+                    if scores['cls_acc'] >= best_raw_acc:
+                        torch.save(model.state_dict(), best_model_path)    
+                model.train()
 
 
 def evaluate(cfgs, model):
@@ -113,7 +131,7 @@ def evaluate(cfgs, model):
     avg_l2_dist = total_l2_dist / total_step
     cls_acc = correct_num / total_step
     # TODO add more evaluate metrics
-    scores = {'L2 distance': avg_l2_dist, 'Classification acc': cls_acc}
+    scores = {'raw_acc': avg_l2_dist, 'cls_acc': cls_acc}
     return scores  
          
 
