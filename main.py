@@ -5,7 +5,7 @@ import yaml
 import random
 from models.colorization_net import *
 import torch
-import tqdm
+from tqdm import tqdm
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
