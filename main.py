@@ -119,17 +119,18 @@ def _evaluate(cfgs, model):
     total_step = len(eval_loader)
     total_l2_dist = 0
     correct_num = 0
-    for i, ipts in tqdm(enumerate(eval_loader, start=1)):
-        L, ab, cls_gt = ipts
-        L = L.to(DEVICE)
-        ab = ab.to(DEVICE)
-        cls_gt = cls_gt.to(DEVICE)
-        ab_out, cls_out = model(L)
-        # L2 distance calculate
-        for i in range(len(ab)): total_l2_dist += torch.dist(ab[i], ab_out[i], 2)
-        # correct num
-        correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
-    
+    with torch.no_grad():
+        for i, ipts in tqdm(enumerate(eval_loader, start=1)):
+            L, ab, cls_gt = ipts
+            L = L.to(DEVICE)
+            ab = ab.to(DEVICE)
+            cls_gt = cls_gt.to(DEVICE)
+            ab_out, cls_out = model(L)
+            # L2 distance calculate
+            for i in range(len(ab)): total_l2_dist += torch.dist(ab[i], ab_out[i], 2)
+            # correct num
+            correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
+        
     avg_l2_dist = total_l2_dist / total_step
     cls_acc = correct_num / total_step
     # TODO add more evaluate metrics
