@@ -119,8 +119,10 @@ def _evaluate(cfgs, model):
     total_step = len(eval_loader)
     total_l2_dist = 0
     correct_num = 0
+    total_cnt = 0
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader, start=1)):
+            total_cnt += L.size(0)
             L, ab, cls_gt = ipts
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
@@ -131,8 +133,8 @@ def _evaluate(cfgs, model):
             # correct num
             correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
         
-    avg_l2_dist = total_l2_dist / total_step
-    cls_acc = correct_num / total_step
+    avg_l2_dist = total_l2_dist / total_cnt
+    cls_acc = correct_num / total_cnt
     # TODO add more evaluate metrics
     scores = {'raw_acc': avg_l2_dist, 'cls_acc': cls_acc}
     return scores  
