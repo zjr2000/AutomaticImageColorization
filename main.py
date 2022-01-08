@@ -122,8 +122,8 @@ def _evaluate(cfgs, model):
     total_cnt = 0
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader, start=1)):
-            total_cnt += L.size(0)
             L, ab, cls_gt = ipts
+            total_cnt += L.size(0)
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
