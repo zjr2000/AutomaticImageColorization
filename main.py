@@ -63,7 +63,7 @@ def train(cfgs):
         optimizer.step()
         scheduler.step()
     # Define loss
-    mse = nn.MSELoss(reduction='mean')
+    mse = nn.MSELoss(reduction='sum')
     ce = nn.CrossEntropyLoss()
     def loss_cal(ab, ab_out, cls_gt, cls_out):
         colorization_loss = mse(ab_out, ab)
@@ -77,10 +77,11 @@ def train(cfgs):
     total_step = len(train_loader)
     best_raw_acc = 100000
     best_cls_acc = 0
-    save_metric = cfgs['save_metrics']
+    save_metric = cfgs['save_metric']
     best_model_path = cfgs['best_model_path']
     saving_schedule = [int(x * total_step / save_per_epoch) for x in list(range(1, save_per_epoch + 1))]
-    logger.info('Saving schedule', saving_schedule)
+    logger.info('Saving schedule:')
+    logger.info(saving_schedule)
     for epoch in range(max_epoch):
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
@@ -108,7 +109,7 @@ def train(cfgs):
                     if scores['raw_acc'] <= best_raw_acc:
                         torch.save(model.state_dict(), best_model_path)
                 elif save_metric == 'cls_acc':
-                    if scores['cls_acc'] >= best_raw_acc:
+                    if scores['cls_acc'] >= best_cls_acc:
                         torch.save(model.state_dict(), best_model_path)    
                 model.train()
 

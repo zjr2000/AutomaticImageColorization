@@ -1,11 +1,13 @@
+import skimage
 import torchvision.transforms as transforms
 from torchvision.datasets.cifar import CIFAR100
 import torch
 from skimage import color, io
+import numpy as np
 
 class Rgb2Lab(object):
     def __call__(self, image):
-        image = image.permute(1, 2, 0).contiguous()
+        image = np.asarray(image, dtype='float32')
         assert image.shape == (224, 224, 3)
         img_lab = color.rgb2lab(image)
         img_lab[:,:,:1] = img_lab[:,:,:1] / 100.0
@@ -14,7 +16,6 @@ class Rgb2Lab(object):
 
 class SplitLab(object):
     def __call__(self, image):
-        image = image.transpose(2, 0, 1)
         assert image.shape == (3, 224, 224)
         L  = image[:1,:,:]
         ab = image[1:,:,:]
@@ -24,7 +25,7 @@ class DataSet(CIFAR100):
     def __init__(self, root, train=True, transform=None, target_transform=None, download=False):
         super().__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
         self.composed = transforms.Compose(
-            [Rgb2Lab(), SplitLab()]
+            [transforms.Resize(224), Rgb2Lab(), transforms.ToTensor(), SplitLab()]
         )
     def __getitem__(self, index):
         image, label = super().__getitem__(index) # image: [c, h, w]
@@ -33,11 +34,7 @@ class DataSet(CIFAR100):
 
 
 def get_data_loader(root, batch_size, isTrain, num_workers=1, shuffle=True):
-    transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor(),
-    ])
-    dataset = DataSet(root, train=isTrain, transform=transform, target_transform=None, download=False)
+    dataset = DataSet(root, train=isTrain, download=False)
     return torch.utils.data.DataLoader(
         dataset, 
         batch_size=batch_size, 
