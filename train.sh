@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=2,3,4 python main.py --cfgs=config.yaml --phase=train --iter=0
+CUDA_VISIBLE_DEVICES=4,5,6 python main.py --cfgs=config.yaml --phase=train --iter=0
