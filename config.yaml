@@ -17,4 +17,4 @@ optimizer_cfg:
 
 scheduler_cfg: 
   gamma: 0.1
-  milestones: [50, 100]
+  milestones: [2, 6]
