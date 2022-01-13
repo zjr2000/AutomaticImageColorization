@@ -40,8 +40,8 @@ def net_out2rgb(L, ab_out):
         3 channel RGB image
     """
     # Convert to numpy and unnnormalize
-    L = L.numpy() * 100.0
-    ab_out = ab_out.numpy() * 254.0 - 127.0
+    L = L.cpu().numpy() * 100.0
+    ab_out = ab_out.cpu().numpy() * 254.0 - 127.0
     
     
     # L and ab_out are tenosr i.e. are of shape of
@@ -78,9 +78,9 @@ def colorize_test_set(cfgs):
             ab = ab.to(DEVICE)
             ab_out, _ = model(L)
             image = net_out2rgb(L.squeeze(0), ab_out.squeeze(0))
-            image = cv2.resize(image, (32, 32))
+            # image = cv2.resize(image, (32, 32))
             file_name = os.path.join(pred_dir, file_name)
-            cv2.imwrite(image, file_name)
+            cv2.imwrite(file_name, image)
 
 
 

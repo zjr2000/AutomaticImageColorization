@@ -19,7 +19,7 @@ if not os.path.exists(target_root_dir):
     os.mkdir(target_root_dir)
 
 for i, img in tqdm(enumerate(data)):
-    # img = cv2.resize(img, target_size, interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(img, target_size, interpolation=cv2.INTER_CUBIC)
     file_name = 'img' + str(i) + '.png'
     file_name = os.path.join(target_root_dir, file_name)
     cv2.imwrite(file_name, img)
