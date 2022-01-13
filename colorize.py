@@ -90,4 +90,4 @@ def colorize_single_image(image_path):
 
 if __name__ == '__main__':
     cfgs = config_loader(path="./config.yaml")
-    colorize_test_set()
+    colorize_test_set(cfgs)
