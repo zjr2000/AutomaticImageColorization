@@ -78,6 +78,7 @@ def train(cfgs):
     log_step = cfgs['log_step']
     save_per_epoch = cfgs['save_per_epoch']
     total_step = len(train_loader)
+    count = 0
     best_raw_acc = 100000
     best_cls_acc = 0
     save_metric = cfgs['save_metric']
@@ -108,6 +109,9 @@ def train(cfgs):
             if i in saving_schedule:
                 model.eval()
                 scores = _evaluate(cfgs, model)
+                for name, val in scores.items():
+                    log_value(name, val, count)
+                count += 1
                 logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
                 if save_metric == 'raw_acc':
                     if scores['raw_acc'] <= best_raw_acc:
