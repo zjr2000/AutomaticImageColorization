@@ -64,7 +64,6 @@ def train(cfgs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
     # Define loss
     mse = nn.MSELoss(reduction='mean')
     ce = nn.CrossEntropyLoss()
@@ -120,6 +119,7 @@ def train(cfgs):
                     if scores['cls_acc'] >= best_cls_acc:
                         torch.save(model.state_dict(), best_model_path)    
                 model.train()
+        scheduler.step()
 
 
 def _evaluate(cfgs, model):
