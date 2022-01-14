@@ -6,6 +6,7 @@ import random
 from models.colorization_net import *
 import torch
 from tqdm import tqdm
+from tensorboard_logger import configure, log_value
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,6 +49,8 @@ def init_model(cfgs, is_train=True):
     return model
 
 def train(cfgs):
+    # log
+    configure('./logs', flush_secs=10)
     # Fix random seed
     init_seeds(0)
     # Init model
@@ -92,6 +95,7 @@ def train(cfgs):
             ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
             loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
+            log_value('total_loss', loss.item(), epoch * total_step + i)
             col_loss_cnt += colorization_loss.item()
             cls_loss_cnt += classification_loss.item()
             train_step(loss)

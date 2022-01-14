@@ -3,6 +3,7 @@
 __pycache__/
 results/
 data/
+logs/
 *.py[cod]
 *$py.class
 
