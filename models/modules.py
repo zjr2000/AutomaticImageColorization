@@ -134,7 +134,7 @@ class GlobalFeature(nn.Module):
         x = rearrange(x, 'B C H W -> B (C H W)')
         x = F.relu(self.fc_layer1(x))
         x = F.relu(self.fc_layer2(x))
-        return self.fc_layer3(x)
+        return F.relu(self.fc_layer3(x)), x
 
 
 class FusionLayer(nn.Module):
@@ -178,13 +178,11 @@ class UpsamplingNet(nn.Module):
 
 
 class Classifier(nn.Module):
-    def __init__(self, class_num, input_dim=256, hidden_sizes = [512, 512]):
+    def __init__(self, class_num, input_dim=512, hidden_size=256):
         super(Classifier, self).__init__()
-        self.hidden_layer1 = nn.Linear(input_dim, hidden_sizes[0])
-        self.hidden_layer2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
-        self.fc = nn.Linear(hidden_sizes[1], class_num)
+        self.hidden_layer1 = nn.Linear(input_dim, hidden_size)
+        self.fc = nn.Linear(hidden_size, class_num)
 
     def forward(self, x):
         x = F.relu(self.hidden_layer1(x))
-        x = self.hidden_layer2(x)
         return F.softmax(self.fc(x), dim=-1)

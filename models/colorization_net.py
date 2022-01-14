@@ -38,7 +38,7 @@ class ColorizationNet(nn.Module):
     def forward(self, x):
         x = self.low_level_net(x)
         mid_level_feature = self.mid_level_net(x)
-        global_feature = self.global_feat_net(x)
+        global_feature, global_feat_cls = self.global_feat_net(x)
         
         fused_feature = self.fusion_layer(
             global_feat=F.relu(global_feature),
@@ -48,4 +48,4 @@ class ColorizationNet(nn.Module):
         out = self.upsampling1(fused_feature)
         out = self.upsampling2(out)
         out = F.interpolate(out, scale_factor=2, mode='nearest')
-        return out, self.cls(global_feature)
+        return out, self.cls(global_feat_cls)
