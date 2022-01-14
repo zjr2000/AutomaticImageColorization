@@ -9,7 +9,7 @@ best_model_path: './results/checkpoints/best_checkpoint.pth'
 pred_dir: './results/pred'
 loss_weight:
   - 1.0
-  - 3.3e-3
+  - 1.0
 
 optimizer_cfg:
   lr: 1.0e-3

@@ -6,7 +6,10 @@ import random
 from models.colorization_net import *
 import torch
 from tqdm import tqdm
-from tensorboard_logger import configure, log_value
+from tensorboard_logger import configure, log_value, log_images
+import colorize
+import cv2
+import os
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,6 +25,7 @@ parser.add_argument('--cfgs', type=str,
 parser.add_argument('--phase', default='train',
                     choices=['train', 'test'], help="choose train or test phase")
 parser.add_argument('--iter', default=0, help="iter to restore")
+parser.add_argument('--local_rank', default=0, help="debug")
 opt = parser.parse_args()
 
 def config_loader(path="./config.yaml"):
@@ -89,10 +93,32 @@ def train(cfgs):
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
             L, ab, cls_gt = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
+            
+            with torch.no_grad():
+                for j in range(len(L)):
+            #         file_name = 'img_train_gt' + str(i) +'.png'
+                    image = colorize.net_out2rgb(L[j], ab[j])
+                    image = image[np.newaxis,:]
+            #         file_name = os.path.join("./results/train_gt/", file_name)
+            #         cv2.imwrite(file_name, image)
+                    log_images("train_gt", image, epoch * total_step + i)
+                    break
+
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
+            
+            with torch.no_grad():
+                for j in range(len(L)):
+                    # file_name = 'img_train_pre' + str(i) +'.png'
+                    image = colorize.net_out2rgb(L[j], ab_out[j])
+                    image = image[np.newaxis,:]
+                    # file_name = os.path.join("./results/train_pre/", file_name)
+                    # cv2.imwrite(file_name, image)
+                    log_images("train_pre", image, epoch * total_step + i)
+                    break
+
             loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
             log_value('total_loss', loss.item(), epoch * total_step + i)
@@ -125,9 +151,9 @@ def train(cfgs):
 def _evaluate(cfgs, model):
     eval_loader = get_data_loader('./data', cfgs['batch_size'], False)
     total_step = len(eval_loader)
-    total_l2_dist = 0
-    correct_num = 0
-    total_cnt = 0
+    total_l2_dist = 0.
+    correct_num = 0.
+    total_cnt = 0.
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader, start=1)):
             L, ab, cls_gt = ipts
