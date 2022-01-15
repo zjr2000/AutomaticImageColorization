@@ -55,7 +55,7 @@ def init_model(cfgs, is_train=True):
 
 def visualize_image(L, ab, name, step):
     with torch.no_grad():
-        image = colorize.net_out2rgb(L[0], ab[0])
+        image = colorize.net_out2rgb(L, ab)
         image = image[np.newaxis,:]
         log_images(name, image, step)
 
@@ -87,7 +87,7 @@ def train(cfgs):
     # Start training
     max_epoch = cfgs['epoch']
     log_step = cfgs['log_step']
-    log_image_step = log_step * 30
+    log_image_step = log_step * 1
     save_per_epoch = cfgs['save_per_epoch']
     total_step = len(train_loader)
     count = 0
@@ -117,6 +117,7 @@ def train(cfgs):
             train_step(loss)
 
             if i % log_image_step == 0:
+                print(L.shape, L[0].shape)
                 visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
                 visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
 

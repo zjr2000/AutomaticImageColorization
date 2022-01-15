@@ -42,7 +42,9 @@ class DataSet(ImageFolder):
     def __init__(self, root, transform=None, target_transform=None):
         super().__init__(root, transform=transform, target_transform=target_transform, loader=io.imread)
         self.composed = transforms.Compose(
-            [HandleGray(), Resize(224), Rgb2Lab(), transforms.ToTensor(), SplitLab()]
+            [HandleGray(), Resize(224), Rgb2Lab(), 
+            transforms.ToTensor(), transforms.ConvertImageDtype(dtype=torch.float),
+            SplitLab()]
         )
     def __getitem__(self, index):
         image, label = super().__getitem__(index) # image: [c, h, w]
