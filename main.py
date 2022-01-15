@@ -60,7 +60,7 @@ def train(cfgs):
     # Init model
     model = init_model(cfgs)
     # Init data loader
-    train_loader = get_data_loader('./data', cfgs['batch_size'], True)
+    train_loader = get_data_loader('./data/places10', cfgs['batch_size'], True)
     # Define train step
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), **cfgs["optimizer_cfg"])
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, **cfgs["scheduler_cfg"])
@@ -149,7 +149,7 @@ def train(cfgs):
 
 
 def _evaluate(cfgs, model):
-    eval_loader = get_data_loader('./data', cfgs['batch_size'], False)
+    eval_loader = get_data_loader('./data/places10/', cfgs['batch_size'], False)
     total_step = len(eval_loader)
     total_l2_dist = 0.
     correct_num = 0.

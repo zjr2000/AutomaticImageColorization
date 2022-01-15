@@ -55,7 +55,7 @@ def colorize_test_set(cfgs):
     if not os.path.exists(pred_dir):
         os.mkdir(pred_dir)
     model = load_model(cfgs)
-    eval_loader = get_data_loader('./data', 1, False, shuffle=False)
+    eval_loader = get_data_loader('./data/places10', 1, False, shuffle=False)
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader)):
             file_name = 'img_pred' + str(i) +'.png'
