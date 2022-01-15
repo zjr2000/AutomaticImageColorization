@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=0,1 python main.py --cfgs=config.yaml --phase=train --iter=0
+CUDA_VISIBLE_DEVICES=0,1 python -W ignore main.py --cfgs=config.yaml --phase=train --iter=0
