@@ -4,8 +4,7 @@ import torch
 from tqdm import tqdm
 from data_loader import get_data_loader
 import numpy as np
-from skimage import color
-import cv2
+from skimage import color, io
 import os
 
 
@@ -47,7 +46,7 @@ def net_out2rgb(L, ab_out):
     Lab[:,:,1:] = Lab[:,:,1:] * 256.0 - 127.0
 
     Lab = Lab.astype(np.float64)	
-    return  color.lab2rgb(Lab) * 255.0
+    return  color.lab2rgb(Lab)
 
 
 def colorize_test_set(cfgs):
@@ -66,7 +65,7 @@ def colorize_test_set(cfgs):
             image = net_out2rgb(L.squeeze(0), ab_out.squeeze(0))
             # image = cv2.resize(image, (32, 32))
             file_name = os.path.join(pred_dir, file_name)
-            cv2.imwrite(file_name, image)
+            io.imsave(file_name, image)
 
 
 
