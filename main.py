@@ -6,7 +6,7 @@ import random
 from models.colorization_net import *
 import torch
 from tqdm import tqdm
-from tensorboard_logger import configure, log_value, log_images
+from torch.utils.tensorboard import SummaryWriter
 import colorize
 import cv2
 import os
@@ -17,6 +17,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Log Settings
 logging.basicConfig(level = logging.INFO,format = '[%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
+writer = SummaryWriter(log_dir='./logs', flush_secs=20)
 
 # Argument
 parser = argparse.ArgumentParser(description='Main program.')
@@ -56,13 +57,10 @@ def init_model(cfgs, is_train=True):
 def visualize_image(L, ab, name, step):
     with torch.no_grad():
         image = colorize.net_out2rgb(L, ab)
-        image = image[np.newaxis,:]
-        log_images(name, image, step)
+        writer.add_image(name, image, global_step=step, dataformats='HWC')
 
 
 def train(cfgs):
-    # log
-    configure('./logs', flush_secs=10)
     # Fix random seed
     init_seeds(0)
     # Init model
@@ -111,15 +109,13 @@ def train(cfgs):
 
             loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
-            log_value('total_loss', loss.item(), epoch * total_step + i)
+            writer.add_scalar('total_loss', loss.item(), epoch * total_step + i)
             col_loss_cnt += colorization_loss.item()
             cls_loss_cnt += classification_loss.item()
             train_step(loss)
 
-            if i % log_image_step == 0:
-                print(L.shape, L[0].shape)
-                visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
-                visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
+            visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
+            visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
 
             if i % log_step == 0:
                 msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.5f col_loss=%.5f total=%.5f' % (epoch+1,
@@ -131,7 +127,7 @@ def train(cfgs):
                 model.eval()
                 scores = _evaluate(cfgs, model)
                 for name, val in scores.items():
-                    log_value(name, val, count)
+                    writer.add_scalar(name, val, count)
                 count += 1
                 logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
                 if save_metric == 'raw_acc':
