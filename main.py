@@ -52,6 +52,14 @@ def init_model(cfgs, is_train=True):
     model = model.to(DEVICE)
     return model
 
+
+def visualize_image(L, ab, name, step):
+    with torch.no_grad():
+        image = colorize.net_out2rgb(L[0], ab[0])
+        image = image[np.newaxis,:]
+        log_images(name, image, step)
+
+
 def train(cfgs):
     # log
     configure('./logs', flush_secs=10)
@@ -93,31 +101,12 @@ def train(cfgs):
         loss_cnt = col_loss_cnt = cls_loss_cnt = 0
         for i, ipts in enumerate(train_loader, start=1):
             L, ab, cls_gt = ipts # ipts[3]: L[b,1,h,w], ab[b,2,h,w], lab[b]
-            
-            with torch.no_grad():
-                for j in range(len(L)):
-            #         file_name = 'img_train_gt' + str(i) +'.png'
-                    image = colorize.net_out2rgb(L[j], ab[j])
-                    image = image[np.newaxis,:]
-            #         file_name = os.path.join("./results/train_gt/", file_name)
-            #         cv2.imwrite(file_name, image)
-                    log_images("train_gt", image, epoch * total_step + i)
-                    break
 
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
             
-            with torch.no_grad():
-                for j in range(len(L)):
-                    # file_name = 'img_train_pre' + str(i) +'.png'
-                    image = colorize.net_out2rgb(L[j], ab_out[j])
-                    image = image[np.newaxis,:]
-                    # file_name = os.path.join("./results/train_pre/", file_name)
-                    # cv2.imwrite(file_name, image)
-                    log_images("train_pre", image, epoch * total_step + i)
-                    break
 
             loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
             loss_cnt += loss.item()
@@ -125,7 +114,10 @@ def train(cfgs):
             col_loss_cnt += colorization_loss.item()
             cls_loss_cnt += classification_loss.item()
             train_step(loss)
+
             if i % log_step == 0:
+                visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
+                visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
                 msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.5f col_loss=%.5f total=%.5f' % (epoch+1,
                  max_epoch, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
                 logger.info(msg) 
