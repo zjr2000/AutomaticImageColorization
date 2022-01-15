@@ -87,6 +87,7 @@ def train(cfgs):
     # Start training
     max_epoch = cfgs['epoch']
     log_step = cfgs['log_step']
+    log_image_step = log_step * 30
     save_per_epoch = cfgs['save_per_epoch']
     total_step = len(train_loader)
     count = 0
@@ -115,9 +116,11 @@ def train(cfgs):
             cls_loss_cnt += classification_loss.item()
             train_step(loss)
 
-            if i % log_step == 0:
+            if i % log_image_step == 0:
                 visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
                 visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
+
+            if i % log_step == 0:
                 msg = 'Epoach [%d/%d] Step [%d/%d] cls_loss=%.5f col_loss=%.5f total=%.5f' % (epoch+1,
                  max_epoch, i, total_step, cls_loss_cnt/log_step, col_loss_cnt/log_step ,loss_cnt/log_step)
                 logger.info(msg) 
