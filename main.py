@@ -58,6 +58,9 @@ def visualize_image(L, ab, name, step):
     with torch.no_grad():
         image = colorize.net_out2rgb(L, ab)
         writer.add_image(name, image, global_step=step, dataformats='HWC')
+        if name == 'Ground Truth':
+            image_gray = color.rgb2gray(image)
+            writer.add_image("Input", image_gray, global_step=step, dataformats='HW')
 
 
 def train(cfgs):
@@ -75,7 +78,7 @@ def train(cfgs):
         loss.backward()
         optimizer.step()
     # Define loss
-    mse = nn.MSELoss(reduction='mean')
+    mse = nn.MSELoss(reduction='sum')
     ce = nn.CrossEntropyLoss()
     def loss_cal(ab, ab_out, cls_gt, cls_out):
         colorization_loss = mse(ab_out, ab)

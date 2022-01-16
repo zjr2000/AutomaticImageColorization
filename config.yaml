@@ -1,7 +1,7 @@
-batch_size: 64
+batch_size: 32
 class_num: 10
 with_test: True
-epoch: 35
+epoch: 24
 log_step: 10
 save_per_epoch: 2
 save_metric: 'raw_acc'
@@ -17,4 +17,4 @@ optimizer_cfg:
 
 scheduler_cfg: 
   gamma: 0.3
-  milestones: [10, 15, 20, 30]
+  milestones: [6, 12, 18, 22]
