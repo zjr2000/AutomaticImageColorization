@@ -141,7 +141,7 @@ def train(cfgs):
                     if scores[save_metric] <= best_raw_acc:
                         torch.save(model.state_dict(), best_model_path)
                 else:
-                    if scores['cls_acc'] >= best_cls_acc:
+                    if scores[save_metric] >= best_cls_acc:
                         torch.save(model.state_dict(), best_model_path)    
                 model.train()
         scheduler.step()
