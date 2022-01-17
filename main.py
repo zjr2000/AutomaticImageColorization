@@ -46,10 +46,12 @@ def init_seeds(seed=0, cuda_deterministic=True):
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
 
-def init_model(cfgs, is_train=True):
+def init_model(cfgs, is_train=True, load_checkpoint=False):
     model = ColorizationNet(cfgs)
     model.train(is_train)
     model = torch.nn.DataParallel(model)
+    if load_checkpoint:
+        model.load_state_dict(torch.load(cfgs['best_model_path']))
     model = model.to(DEVICE)
     return model
 
@@ -135,7 +137,7 @@ def train(cfgs):
                     logger.info(info)
                 count += 1
 
-                if save_metric != 'cls_acc':
+                if save_metric == 'l1_dist' or 'l2_dist':
                     if scores[save_metric] <= best_raw_acc:
                         torch.save(model.state_dict(), best_model_path)
                 else:
@@ -151,7 +153,7 @@ def _evaluate(cfgs, model):
     correct_num = 0.
     total_cnt = 0.
     total_l1_dist = 0.
-    total_l2_square = 0.
+    total_auc = 0.
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader, start=1)):
             L, ab, cls_gt = ipts
@@ -161,34 +163,29 @@ def _evaluate(cfgs, model):
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L)
             # distance calculate
-            l2_each = np.zeros(len(ab))
             for i in range(len(ab)): 
-                l2 = torch.dist(ab[i], ab_out[i], 2)
-                total_l2_dist += l2
+                total_l2_dist += torch.dist(ab[i], ab_out[i], 2)
                 total_l1_dist += torch.dist(ab[i], ab_out[i], 1)
-                total_l2_square += l2 ** 2
-                l2_each[i] = l2
-
-            # AUC
-            thres_bound = (0, 150)
-            p = np.zeros(len(ab))
-            total_auc = 0.
-            for i in range(thres_bound):
-                pi = float(len(np.where(l2_each <= i)) / len(ab))
-                total_auc += pi
-                p[i] = pi
-
-
-            # correct num
+            total_auc += evaluate_auc(ab, ab_out)
             correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
         
     l2_dist = total_l2_dist / total_cnt
     l1_dist = total_l1_dist / total_cnt
-    l2_square = total_l2_square / total_cnt
     auc = total_auc / total_cnt
     cls_acc = correct_num / total_cnt
-    scores = {'l2_dist': l2_dist, 'cls_acc': cls_acc, 'l1_dist': l1_dist, 'l2_square': l2_square}
-    return scores  
+    scores = {'l2_dist': l2_dist, 'cls_acc': cls_acc, 'l1_dist': l1_dist, 'AuC': auc}
+    return scores
+
+
+def evaluate_auc(ab, ab_out, thres_bound = 150):
+    ab = ab * 256.0 - 127.0
+    ab_out = ab_out * 256.0 - 127.0
+    pixel_level_l2_dist = torch.sqrt((ab[:,0,:,:] - ab_out[:,0,:,:])**2 + 
+                (ab[:,1,:,:] - ab_out[:,1,:,:])**2)
+    dim = pixel_level_l2_dist.size()
+    ele_num = dim[0] * dim[1] * dim[2]
+    return torch.sum(torch.where(pixel_level_l2_dist<=thres_bound, 1, 0 )) / ele_num
+    
          
 
 if __name__ == '__main__':
@@ -197,5 +194,10 @@ if __name__ == '__main__':
     isTrain = (opt.phase == 'train')
     if isTrain:
         train(cfgs)
-
+    else:
+        model = init_model(cfgs, is_train=False, load_checkpoint=True)
+        scores = _evaluate(cfgs=cfgs, model=model)
+        for name, val in scores.items():
+            info = name + ' : %.4f' % val
+            logger.info(info)
 
