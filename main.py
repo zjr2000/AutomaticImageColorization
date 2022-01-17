@@ -1,4 +1,5 @@
 import argparse
+from distutils.log import info
 import logging
 from plistlib import load
 import numpy as np
@@ -188,6 +189,9 @@ if __name__ == '__main__':
         train(cfgs)
     else:
         model = init_model(cfgs, is_train=False, load_checkpoint=True)
-        _evaluate(cfgs=cfgs, model=model)
+        scores = _evaluate(cfgs=cfgs, model=model)
+        for name, val in scores.items():
+            info = name + ' : %.4f' % val
+            logger.info(info)
 
 

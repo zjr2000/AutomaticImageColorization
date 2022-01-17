@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=4,5,6 python -W ignore main.py --cfgs=config.yaml --phase=test --iter=0
