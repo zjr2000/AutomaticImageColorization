@@ -3,6 +3,7 @@ class_num: 10
 with_test: True
 epoch: 20
 log_step: 10
+log_image_step: 200
 save_per_epoch: 2
 save_metric: 'l2_square'
 best_model_path: './results/checkpoints/best_checkpoint.pth'

@@ -91,7 +91,7 @@ def train(cfgs):
     # Start training
     max_epoch = cfgs['epoch']
     log_step = cfgs['log_step']
-    log_image_step = log_step * 1
+    log_image_step = cfgs['log_image_step']
     save_per_epoch = cfgs['save_per_epoch']
     total_step = len(train_loader)
     count = 0
