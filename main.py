@@ -1,7 +1,5 @@
 import argparse
-from distutils.log import info
 import logging
-from plistlib import load
 import numpy as np
 import yaml
 import random
@@ -48,12 +46,10 @@ def init_seeds(seed=0, cuda_deterministic=True):
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
 
-def init_model(cfgs, is_train=True, load_checkpoint=False):
+def init_model(cfgs, is_train=True):
     model = ColorizationNet(cfgs)
     model.train(is_train)
     model = torch.nn.DataParallel(model)
-    if load_checkpoint:
-        model.load_state_dict(torch.load(cfgs['best_model_path']))
     model = model.to(DEVICE)
     return model
 
@@ -92,7 +88,7 @@ def train(cfgs):
     # Start training
     max_epoch = cfgs['epoch']
     log_step = cfgs['log_step']
-    log_image_step = cfgs['log_image_step']
+    log_image_step = log_step * 1
     save_per_epoch = cfgs['save_per_epoch']
     total_step = len(train_loader)
     count = 0
@@ -165,17 +161,31 @@ def _evaluate(cfgs, model):
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L)
             # distance calculate
+            l2_each = np.zeros(len(ab))
             for i in range(len(ab)): 
                 l2 = torch.dist(ab[i], ab_out[i], 2)
                 total_l2_dist += l2
                 total_l1_dist += torch.dist(ab[i], ab_out[i], 1)
                 total_l2_square += l2 ** 2
+                l2_each[i] = l2
+
+            # AUC
+            thres_bound = (0, 150)
+            p = np.zeros(len(ab))
+            total_auc = 0.
+            for i in range(thres_bound):
+                pi = float(len(np.where(l2_each <= i)) / len(ab))
+                total_auc += pi
+                p[i] = pi
+
+
             # correct num
             correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
         
     l2_dist = total_l2_dist / total_cnt
     l1_dist = total_l1_dist / total_cnt
     l2_square = total_l2_square / total_cnt
+    auc = total_auc / total_cnt
     cls_acc = correct_num / total_cnt
     scores = {'l2_dist': l2_dist, 'cls_acc': cls_acc, 'l1_dist': l1_dist, 'l2_square': l2_square}
     return scores  
@@ -187,11 +197,5 @@ if __name__ == '__main__':
     isTrain = (opt.phase == 'train')
     if isTrain:
         train(cfgs)
-    else:
-        model = init_model(cfgs, is_train=False, load_checkpoint=True)
-        scores = _evaluate(cfgs=cfgs, model=model)
-        for name, val in scores.items():
-            info = name + ' : %.4f' % val
-            logger.info(info)
 
 
