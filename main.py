@@ -187,7 +187,7 @@ if __name__ == '__main__':
     if isTrain:
         train(cfgs)
     else:
-        model = init_model(is_train=False, load_checkpoint=True)
+        model = init_model(cfgs, is_train=False, load_checkpoint=True)
         _evaluate(cfgs=cfgs, model=model)
 
 
