@@ -120,7 +120,7 @@ def train(cfgs):
             col_loss_cnt += colorization_loss.item()
             cls_loss_cnt += classification_loss.item()
             train_step(loss)
-            if i % log_image_step:
+            if i % log_image_step == 0:
                 visualize_image(L[0], ab[0], 'Ground Truth', epoch * total_step + i)
                 visualize_image(L[0], ab_out[0], 'Ours', epoch * total_step + i)
 
