@@ -1,5 +1,6 @@
 import argparse
 import logging
+from plistlib import load
 import numpy as np
 import yaml
 import random
@@ -46,10 +47,12 @@ def init_seeds(seed=0, cuda_deterministic=True):
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
 
-def init_model(cfgs, is_train=True):
+def init_model(cfgs, is_train=True, load_checkpoint=False):
     model = ColorizationNet(cfgs)
     model.train(is_train)
     model = torch.nn.DataParallel(model)
+    if load_checkpoint:
+        model.load_state_dict(torch.load(cfgs['best_model_path']))
     model = model.to(DEVICE)
     return model
 
@@ -183,5 +186,8 @@ if __name__ == '__main__':
     isTrain = (opt.phase == 'train')
     if isTrain:
         train(cfgs)
+    else:
+        model = init_model(is_train=False, load_checkpoint=True)
+        _evaluate(cfgs=cfgs, model=model)
 
 
