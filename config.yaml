@@ -5,12 +5,12 @@ epoch: 20
 log_step: 10
 log_image_step: 200
 save_per_epoch: 2
-save_metric: 'l2_square'
+save_metric: 'AuC'
 best_model_path: './results/checkpoints/best_checkpoint.pth'
 pred_dir: './results/pred'
 loss_weight:
   - 1.0
-  - 0.005
+  - 0.5
 
 optimizer_cfg:
   lr: 1.0e-4
