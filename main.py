@@ -134,7 +134,7 @@ def train(cfgs):
                     info = name + ' : %.4f' % val
                     logger.info(info)
                 count += 1
-                logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
+
                 if save_metric != 'cls_acc':
                     if scores[save_metric] <= best_raw_acc:
                         torch.save(model.state_dict(), best_model_path)
