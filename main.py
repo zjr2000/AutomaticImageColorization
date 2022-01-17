@@ -133,10 +133,10 @@ def train(cfgs):
                     writer.add_scalar(name, val, count)
                 count += 1
                 logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
-                if save_metric == 'raw_acc':
-                    if scores['raw_acc'] <= best_raw_acc:
+                if save_metric != 'cls_acc':
+                    if scores[save_metric] <= best_raw_acc:
                         torch.save(model.state_dict(), best_model_path)
-                elif save_metric == 'cls_acc':
+                else:
                     if scores['cls_acc'] >= best_cls_acc:
                         torch.save(model.state_dict(), best_model_path)    
                 model.train()
@@ -145,10 +145,11 @@ def train(cfgs):
 
 def _evaluate(cfgs, model):
     eval_loader = get_data_loader('./data/places10/', cfgs['batch_size'], False)
-    total_step = len(eval_loader)
     total_l2_dist = 0.
     correct_num = 0.
     total_cnt = 0.
+    total_l1_dist = 0.
+    total_l2_square = 0.
     with torch.no_grad():
         for i, ipts in tqdm(enumerate(eval_loader, start=1)):
             L, ab, cls_gt = ipts
@@ -157,15 +158,20 @@ def _evaluate(cfgs, model):
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
             ab_out, cls_out = model(L)
-            # L2 distance calculate
-            for i in range(len(ab)): total_l2_dist += torch.dist(ab[i], ab_out[i], 2)
+            # distance calculate
+            for i in range(len(ab)): 
+                l2 = torch.dist(ab[i], ab_out[i], 2)
+                total_l2_dist += l2
+                total_l1_dist += torch.dist(ab[i], ab_out[i], 1)
+                total_l2_square += l2 ** 2
             # correct num
             correct_num += ((cls_out.max(1)[1] == cls_gt).sum())
         
-    avg_l2_dist = total_l2_dist / total_cnt
+    l2_dist = total_l2_dist / total_cnt
+    l1_dist = total_l1_dist / total_cnt
+    l2_square = total_l2_square / total_cnt
     cls_acc = correct_num / total_cnt
-    # TODO add more evaluate metrics
-    scores = {'raw_acc': avg_l2_dist, 'cls_acc': cls_acc}
+    scores = {'l2_dist': l2_dist, 'cls_acc': cls_acc, 'l1_dist': l1_dist, 'l2_square': l2_square}
     return scores  
          
 
