@@ -131,6 +131,8 @@ def train(cfgs):
                 scores = _evaluate(cfgs, model)
                 for name, val in scores.items():
                     writer.add_scalar(name, val, count)
+                    info = name + ' : %.4f' % val
+                    logger.info(info)
                 count += 1
                 logger.info('Evaluate results: raw_acc: %.4f cls_acc %.4f' % (scores['raw_acc'], scores['cls_acc']))
                 if save_metric != 'cls_acc':
