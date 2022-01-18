@@ -1,6 +1,8 @@
 # AutomaticImageColorization
  Automatic Image Colorization。SUSTech CS308 final project
- This project is to reproduce the framework in this [article](https://dl.acm.org/doi/pdf/10.1145/2897824.2925974)
+ 
+ 
+ This project is to reproduce the framework in [Let there be Color!](https://dl.acm.org/doi/pdf/10.1145/2897824.2925974)
 
  ## Get Started
  ```
