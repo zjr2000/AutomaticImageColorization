@@ -27,7 +27,7 @@
  ```
 ## Requirement data
  ```
-Download the data from: https://github.com/zjr2000/AutomaticImageColorization/edit/main/README.md
+Download the data from: http://places2.csail.mit.edu/download.html
  ```
  
 ## Train
