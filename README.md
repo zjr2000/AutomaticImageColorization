@@ -25,3 +25,21 @@
  pip install einops
  pip install scikit-image
  ```
+## Requirement data
+ ```
+Download the data from: https://github.com/zjr2000/AutomaticImageColorization/edit/main/README.md
+ ```
+ 
+## Train
+ ```
+bash train.sh
+ ```
+ 
+## Test
+ ```
+bash eval.sh
+ ```
+## Colorization
+ ```
+bash colorization.sh
+ ```
