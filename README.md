@@ -1,5 +1,6 @@
 # AutomaticImageColorization
  Automatic Image Colorization。SUSTech CS308 final project
+ This project is to reproduce the framework in this [article](https://dl.acm.org/doi/pdf/10.1145/2897824.2925974)
 
  ## Get Started
  ```
@@ -10,6 +11,8 @@
 ## Requirement data
  ```
 Download the data from: http://places2.csail.mit.edu/download.html
+data_loader.py is modified from https://github.com/kainoj/colnet
+
 mkdir ./data | mkdir ./logs | mkdir results
 mkdir ./results/checkpoints | mkdir ./results/pred
 mv download_dataset ./data/
