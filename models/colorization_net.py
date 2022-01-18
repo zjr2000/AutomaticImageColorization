@@ -35,17 +35,32 @@ class ColorizationNet(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias.data, 0.0)
 
-    def forward(self, x):
-        x = self.low_level_net(x)
-        mid_level_feature = self.mid_level_net(x)
-        global_feature, global_feat_cls = self.global_feat_net(x)
-        
-        fused_feature = self.fusion_layer(
-            global_feat=F.relu(global_feature),
-            mid_level_feat=mid_level_feature
-        )
-        fused_feature = self.conv_fusion(fused_feature)
-        out = self.upsampling1(fused_feature)
-        out = self.upsampling2(out)
-        out = F.interpolate(out, scale_factor=2, mode='nearest')
-        return out, self.cls(global_feat_cls)
+    def forward(self, x, input_feature=None):
+        if input_feature == None:
+            x = self.low_level_net(x)
+            mid_level_feature = self.mid_level_net(x)
+            global_feature, global_feat_cls = self.global_feat_net(x)
+            
+            fused_feature = self.fusion_layer(
+                global_feat=F.relu(global_feature),
+                mid_level_feat=mid_level_feature
+            )
+            fused_feature = self.conv_fusion(fused_feature)
+            out = self.upsampling1(fused_feature)
+            out = self.upsampling2(out)
+            out = F.interpolate(out, scale_factor=2, mode='nearest')
+            return out, self.cls(global_feat_cls), global_feature
+        else:
+            x = self.low_level_net(x)
+            mid_level_feature = self.mid_level_net(x)
+            global_feature = input_feature
+            
+            fused_feature = self.fusion_layer(
+                global_feat=F.relu(global_feature),
+                mid_level_feat=mid_level_feature
+            )
+            fused_feature = self.conv_fusion(fused_feature)
+            out = self.upsampling1(fused_feature)
+            out = self.upsampling2(out)
+            out = F.interpolate(out, scale_factor=2, mode='nearest')
+            return out, None, global_feature

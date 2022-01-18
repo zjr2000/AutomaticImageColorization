@@ -109,7 +109,7 @@ def train(cfgs):
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
-            ab_out, cls_out = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
+            ab_out, cls_out, _ = model(L) # ab_out[b,2,h,w], lab_out[b, class_nums]
             
 
             loss, colorization_loss, classification_loss = loss_cal(ab, ab_out, cls_gt, cls_out)
@@ -161,7 +161,7 @@ def _evaluate(cfgs, model):
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
             cls_gt = cls_gt.to(DEVICE)
-            ab_out, cls_out = model(L)
+            ab_out, cls_out, _ = model(L)
             # distance calculate
             for i in range(len(ab)): 
                 total_l2_dist += torch.dist(ab[i], ab_out[i], 2)

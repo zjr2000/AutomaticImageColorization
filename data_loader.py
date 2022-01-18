@@ -5,6 +5,7 @@ from skimage import color, io
 from skimage.transform import resize
 import numpy as np
 import os
+# modified from https://github.com/kainoj/colnet
 
 class HandleGray(object):
     def __call__(self, image):

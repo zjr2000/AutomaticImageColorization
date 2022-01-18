@@ -56,12 +56,15 @@ def colorize_test_set(cfgs):
     model = load_model(cfgs)
     eval_loader = get_data_loader('./data/places10', 1, False, shuffle=False)
     with torch.no_grad():
+        # tmp_feature = None
         for i, ipts in tqdm(enumerate(eval_loader)):
-            file_name = 'img_pred' + str(i) +'.png'
+            file_name = 'pre_style' + str(i) +'.png'
             L, ab, _ = ipts
             L = L.to(DEVICE)
             ab = ab.to(DEVICE)
-            ab_out, _ = model(L)
+            tmp_feature = None
+            ab_out, _, tmp = model(L, tmp_feature)
+            tmp_feature = tmp.clone().detach()
             image = net_out2rgb(L.squeeze(0), ab_out.squeeze(0))
             # image = cv2.resize(image, (32, 32))
             file_name = os.path.join(pred_dir, file_name)
